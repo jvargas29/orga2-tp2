@@ -16,6 +16,15 @@ typedef struct bmpFileHeader
   uint32_t offset;      /* Offset hasta hasta los datos de imagen */
 } bmpFileHeader;
 
+typedef struct parameter_struct{
+   unsigned char *img1; 
+   unsigned char *img2; 
+   unsigned char *mascara; 
+   int width; 
+   int heigth; 
+   unsigned char *result;
+} parameter_struct;
+
 int loadFile(char *fileName, int dimensions, unsigned char *buffer){
     FILE *file;
      bmpFileHeader header;    
@@ -62,22 +71,30 @@ void enmascarar_c(unsigned char *img1pixels, unsigned char *img2pixels, unsigned
 
 
 //int principal(int arg, char *argv[])
-int *principal(unsigned char *img1, unsigned char *img2, unsigned char *mascara, int width, int heigth, unsigned char *result)
+//int *principal(unsigned char *img1, unsigned char *img2, unsigned char *mascara, int width, int heigth, unsigned char *result)
+void *principal(void *args)
 {
 
+    struct parameter_struct *actual_args;
+        actual_args = (struct parameter_struct *)args;
   /* char *imagen1 = argv[1];
     char *imagen2 = argv[2];
     char *mask = argv[3];
 */
-    char *imagen1 = img1;
-    char *imagen2 = img2;
-    char *mask = mascara;
+printf("width %d", actual_args->width);
+    char *imagen1 = actual_args->img1;
+    char *imagen2 = actual_args->img2;
+    char *mask = actual_args->mascara;
+    char *result = actual_args->result;
 
 
-   // int width = atoi(argv[4]);
-   // int heigth = atoi(argv[5]);
+    int width = actual_args->width;//atoi(argv[4]);
+    int heigth = actual_args->heigth;//atoi(argv[5]);
     int colorsxPixel = 3; 
     int dimensions = width * heigth * colorsxPixel;
+
+          printf(" \n  inicio %d", width);
+
 
     // memory reservation
     unsigned char *maskData = malloc(dimensions);
@@ -99,8 +116,9 @@ int *principal(unsigned char *img1, unsigned char *img2, unsigned char *mascara,
     free(maskData);
     free(img1Data);
     free(img2Data);
+    free(actual_args);
 
-    return 0;
+   // return 0;
 
 }
 int main()
@@ -110,16 +128,39 @@ int main()
     clock_t t_ini, t_fin;
     double secs = 0.0;
 
+     parameter_struct *args = malloc(sizeof *args);
+     args->img1 = "image1.bmp";
+     args->img2 = "image2.bmp";
+     args->mascara = "mask3.bmp";
+     args->width = 970;
+     args->heigth = 518;
+     args->result = "result.bmp";
+
+     parameter_struct *args2 = malloc(sizeof *args2);
+     args->img1 = "img1.bmp";
+     args->img2 = "img2.bmp";
+     args->mascara = "mask.bmp";
+     args->width = 500;
+     args->heigth = 490;
+     args->result = "result2.bmp";
+
+printf("args: %d",args->width);
+
  t_ini = clock();
-    //pthread_create(&hilo, NULL, principal("image1.bmp", "image2.bmp", "mask3.bmp", 970, 518, "result.bmp"), NULL);
-    //pthread_create(&hilo2, NULL, principal("img1.bmp", "img2.bmp", "mask.bmp", 500, 490, "result2.bmp"), NULL);
+ 
+    if(pthread_create(&hilo, NULL, principal,  (void *)args)){
+        free(args);
+    }
+    if(pthread_create(&hilo2, NULL, principal,  (void *)args2)){
+        free(args2);
+    }
 
-    principal("image1.bmp", "image2.bmp", "mask3.bmp", 970, 518, "result.bmp");
-    principal("img1.bmp", "img2.bmp", "mask.bmp", 500, 490, "result2.bmp");
+    //principal("image1.bmp", "image2.bmp", "mask3.bmp", 970, 518, "result.bmp");
+    //principal("img1.bmp", "img2.bmp", "mask.bmp", 500, 490, "result2.bmp");
 
 
-    //pthread_join(hilo, NULL);
-    //pthread_join(hilo2, NULL);
+    pthread_join(hilo, NULL);
+    pthread_join(hilo2, NULL);
 
   t_fin = clock();
    
