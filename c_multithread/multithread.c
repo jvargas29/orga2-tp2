@@ -130,12 +130,12 @@ void *thread_function(void *arg){
     p->widthSet4 = 1280;
     p->heigthSet4 = 960;
 
-    if(p->set1 && p->set2 && p->threada_created == false){
+    if(p->set1 && p->set2){
         generateMaskedImage(p->img1,p->img2,p->mask,p->widthSet1,p->widthSet2,"resultSet1.bmp");
         generateMaskedImage(p->image1,p->image2,p->mask3,p->widthSet2,p->heigthSet2,"resultSet2.bmp");
     }
 
-    if (p->set3 && p->set4 && p->threadb_created == false)
+    if (p->set3 && p->set4)
     {
         generateMaskedImage(p->pic1,p->pic2,p->mask2,p->widthSet3,p->heigthSet3,"resultSet3.bmp");  
         generateMaskedImage(p->photo1,p->photo2,p->mask4,p->widthSet4,p->heigthSet4,"resultSet4.bmp");   
@@ -289,7 +289,6 @@ int main(int arg, char *argv[])
                 {
                     printf("Creado hilo a\n");
                     pthread_create(&threada, NULL, thread_function, (void *)&params);
-                    //pthread_join(thread,NULL);
                     params.threada_created = true;
                 }
                 
@@ -297,7 +296,6 @@ int main(int arg, char *argv[])
                 {
                     printf("Creado hilo b\n");
                     pthread_create(&threadb, NULL, thread_function, (void *)&params);
-                    //pthread_join(thread,NULL);
                     params.threadb_created = true;
                 }
             }
