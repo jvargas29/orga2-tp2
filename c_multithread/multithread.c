@@ -146,7 +146,8 @@ int main(int arg, char *argv[])
 {
     DIR* dir;
     FILE *entry_file;
-    pthread_t thread;
+    pthread_t threada;
+    pthread_t threadb;
     struct dirent *in_file;
     char files[1000];
     int i;
@@ -287,23 +288,27 @@ int main(int arg, char *argv[])
                 if (countSet1 == 3 && countSet2 == 3 && params.threada_created == false)
                 {
                     printf("Creado hilo a\n");
-                    pthread_create(&thread, NULL, thread_function, (void *)&params);
-                    pthread_join(thread,NULL);
+                    pthread_create(&threada, NULL, thread_function, (void *)&params);
+                    //pthread_join(thread,NULL);
                     params.threada_created = true;
                 }
                 
                 if (countSet3 == 3 && countSet4 == 3 && params.threadb_created == false)
                 {
                     printf("Creado hilo b\n");
-                    pthread_create(&thread, NULL, thread_function, (void *)&params);
-                    pthread_join(thread,NULL);
+                    pthread_create(&threadb, NULL, thread_function, (void *)&params);
+                    //pthread_join(thread,NULL);
                     params.threadb_created = true;
                 }
             }
 
             fclose(entry_file);
         }
+
     }
+
+    pthread_join(threada,NULL);
+    pthread_join(threadb,NULL);
   
     closedir(dir);
 
