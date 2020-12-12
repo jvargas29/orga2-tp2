@@ -42,6 +42,10 @@ struct parameters {
     bool set2;
     bool set3;
     bool set4;
+
+    bool threada_created;
+    bool threadb_created;
+
 };
 
 void loadFile(char *fileName, int dimensions, unsigned char *buffer){
@@ -126,12 +130,12 @@ void *thread_function(void *arg){
     p->widthSet4 = 1280;
     p->heigthSet4 = 960;
 
-    if(p->set1 && p->set2){
+    if(p->set1 && p->set2 && p->threada_created == false){
         generateMaskedImage(p->img1,p->img2,p->mask,p->widthSet1,p->widthSet2,"resultSet1.bmp");
         generateMaskedImage(p->image1,p->image2,p->mask3,p->widthSet2,p->heigthSet2,"resultSet2.bmp");
     }
 
-    if (p->set3 && p->set4)
+    if (p->set3 && p->set4 && p->threadb_created == false)
     {
         generateMaskedImage(p->pic1,p->pic2,p->mask2,p->widthSet3,p->heigthSet3,"resultSet3.bmp");  
         generateMaskedImage(p->photo1,p->photo2,p->mask4,p->widthSet4,p->heigthSet4,"resultSet4.bmp");   
@@ -153,6 +157,9 @@ int main(int arg, char *argv[])
     int countSet2 = 0; 
     int countSet3 = 0; 
     int countSet4 = 0; 
+
+    params.threada_created = false;
+    params.threadb_created = false;
 
     char actualDir[PATH_MAX];
     getcwd(actualDir, sizeof(actualDir));
@@ -261,20 +268,43 @@ int main(int arg, char *argv[])
                     countSet4++;
                 }
 
-                if (countSet4==true)
+                if (countSet4==3)
                 {
                     params.set4=true;
                 }
             }
+
+            if (countSet1 == 3 && countSet2 == 3 || countSet3 == 3 && countSet4 == 3)
+            {
+                printf("countset1: %i\n", countSet1);
+                printf("countset2: %i\n", countSet2);
+                printf("countset3: %i\n", countSet3);
+                printf("countset4: %i\n", countSet4);
+
+                printf("hiloa: %d\n",params.threada_created);
+                printf("hilob: %d\n",params.threada_created);
+
+                if (countSet1 == 3 && countSet2 == 3 && params.threada_created == false)
+                {
+                    printf("Creado hilo a\n");
+                    pthread_create(&thread, NULL, thread_function, (void *)&params);
+                    pthread_join(thread,NULL);
+                    params.threada_created = true;
+                }
+                
+                if (countSet3 == 3 && countSet4 == 3 && params.threadb_created == false)
+                {
+                    printf("Creado hilo b\n");
+                    pthread_create(&thread, NULL, thread_function, (void *)&params);
+                    pthread_join(thread,NULL);
+                    params.threadb_created = true;
+                }
+            }
+
             fclose(entry_file);
         }
     }
-   if (countSet1 == 3 && countSet2 == 3 || countSet3 == 3 && countSet4 == 3)
-    {
-        pthread_create(&thread, NULL, thread_function, (void *)&params);
-        pthread_join(thread,NULL);
-    }
- 
+  
     closedir(dir);
 
     return 0;
