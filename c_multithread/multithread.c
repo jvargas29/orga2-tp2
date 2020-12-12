@@ -5,8 +5,47 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
+#include <stdbool.h>
+
+struct parameters {
+    
+    char *img1;
+    char *img2;
+    char *mask;
+
+    int widthSet1;
+     int heigthSet1;
+
+    char *pic1 ;
+    char *pic2 ;
+    char *mask2;
+
+    int widthSet2;
+     int heigthSet2;
+
+    char *image1;
+    char *image2;
+    char *mask3 ;    
+
+    int widthSet3;
+    int heigthSet3;
+
+    char *photo1;
+    char *photo2;
+    char *mask4 ;  
+
+    int widthSet4;
+    int heigthSet4;
+
+    bool set1;
+    bool set2;
+    bool set3;
+    bool set4;
+};
 
 void loadFile(char *fileName, int dimensions, unsigned char *buffer){
+    
     FILE *file;
     file = fopen(fileName, "r");
     if(file == NULL){
@@ -25,7 +64,6 @@ void saveFile(char *fileName, int dimensions, unsigned char *buffer){
 }
 
 void enmascarar_c(unsigned char *img1Data, unsigned char *img2Data, unsigned char *maskData, int width, int heigth){
-
     int y,x;
     int r,g,b;
 
@@ -44,13 +82,10 @@ void enmascarar_c(unsigned char *img1Data, unsigned char *img2Data, unsigned cha
             }
         }    
     }
-
 }
 
 void generateMaskedImage(char *image1, char *image2, char *mask, int width, int heigth, char *resultFileName){
 
-   // width = atoi(argv[4]);
-    //heigth = atoi(argv[5]);
     int colorsxPixel = 3; 
     int dimensions = width * heigth * colorsxPixel;
 
@@ -67,24 +102,57 @@ void generateMaskedImage(char *image1, char *image2, char *mask, int width, int 
 
     saveFile(resultFileName, dimensions, data_img1);
 
+    pthread_t hilo;
+
     free(data_mask);
     free(data_img1);
     free(data_img2);
 
 }
 
+void *thread_function(void *arg){
+     struct parameters *p;
+    p = (struct parameters *) arg;
+ 
+    p->widthSet1 = 500;
+    p->heigthSet1 = 490; 
+
+    p->widthSet2 = 900;
+    p->heigthSet2 = 512;
+
+    p->widthSet3 = 800;
+    p->heigthSet3 = 600;
+
+    p->widthSet4 = 1280;
+    p->heigthSet4 = 960;
+
+    if(p->set1 && p->set2){
+        generateMaskedImage(p->img1,p->img2,p->mask,p->widthSet1,p->widthSet2,"resultSet1.bmp");
+        generateMaskedImage(p->image1,p->image2,p->mask3,p->widthSet2,p->heigthSet2,"resultSet2.bmp");
+    }
+
+    if (p->set3 && p->set4)
+    {
+        generateMaskedImage(p->pic1,p->pic2,p->mask2,p->widthSet3,p->heigthSet3,"resultSet3.bmp");  
+        generateMaskedImage(p->photo1,p->photo2,p->mask4,p->widthSet4,p->heigthSet4,"resultSet4.bmp");   
+    }
+}
+
 int main(int arg, char *argv[])
 {
     DIR* dir;
     FILE *entry_file;
+    pthread_t thread;
     struct dirent *in_file;
     char files[1000];
     int i;
 
-    //params
-   /*  char *imagen1 = argv[1];
-    char *imagen2 = argv[2];
-    char *mask = argv[3]; */
+    struct parameters params;
+
+    int countSet1 = 0; 
+    int countSet2 = 0; 
+    int countSet3 = 0; 
+    int countSet4 = 0; 
 
     char actualDir[PATH_MAX];
     getcwd(actualDir, sizeof(actualDir));
@@ -96,26 +164,21 @@ int main(int arg, char *argv[])
         exit(1);
     }
 
-    int countSet1 = 0; 
-    int countSet2 = 0; 
-    int countSet3 = 0; 
-    int countSet4 = 0; 
+    params.img1 = NULL;
+    params.img2 = NULL;
+    params.mask = NULL;
 
-    char *img1 = NULL;
-    char *img2 = NULL;
-    char *mask = NULL;
+    params.image1 = NULL;
+    params.image2 = NULL;
+    params.mask3 = NULL;
 
-    char *pic1 = NULL;
-    char *pic2 = NULL;
-    char *mask2 = NULL;
+    params.pic1 = NULL;
+    params.pic2 = NULL;
+    params.mask2 = NULL;
 
-    char *image1 = NULL;
-    char *image2 = NULL;
-    char *mask3 = NULL;    
-
-    char *photo1 = NULL;
-    char *photo2 = NULL;
-    char *mask4 = NULL;    
+    params.photo1 = NULL;
+    params.photo2 = NULL;
+    params.mask4 = NULL;
 
     while((in_file=readdir(dir)) != NULL) {
         
@@ -125,91 +188,93 @@ int main(int arg, char *argv[])
             continue;
         entry_file = fopen(in_file->d_name, "r");
         if (entry_file != NULL) {
-
             if (strcmp(in_file->d_name,"img1.bmp") == 0 || strcmp(in_file->d_name,"img2.bmp") == 0 || strcmp(in_file->d_name,"mask.bmp") == 0 )
-            {
+            {            
                 if(strcmp(in_file->d_name,"mask.bmp") == 0){
-                    mask = in_file->d_name;
+                    params.mask = in_file->d_name;
                     countSet1++;
-                }else if(img1 == NULL){
-                    img1=in_file->d_name;
+                }else if(params.img1 == NULL){
+                    params.img1=in_file->d_name;
                     countSet1++;
                 } else
                 {
-                    img2 = in_file->d_name;
+                    params.img2 = in_file->d_name;
                     countSet1++;   
                 }
                 if (countSet1 == 3)
-                {   
-                    generateMaskedImage(img1, img2, mask, 500, 490, "result.bmp");
+                {
+                    params.set1 = true;
                 }
             }
 
             if (strcmp(in_file->d_name,"image1.bmp") == 0 || strcmp(in_file->d_name,"image2.bmp") == 0 || strcmp(in_file->d_name,"mask3.bmp") == 0 )
             {
                 if(strcmp(in_file->d_name,"mask3.bmp") == 0){
-                    mask3 = in_file->d_name;
+                    params.mask3 = in_file->d_name;
                     countSet2++;
-                }else if(image1 == NULL){
-                    image1=in_file->d_name;
+                }else if(params.image1 == NULL){
+                    params.image1=in_file->d_name;
                     countSet2++;
                 } else
                 {
-                    image2 = in_file->d_name;
+                    params.image2 = in_file->d_name;
                     countSet2++;
                 }
 
-                if (countSet2 == 3)
+                if (countSet2==3)
                 {
-                    generateMaskedImage(image1, image2, mask3, 900, 512, "result2.bmp");
+                    params.set2 = true;
                 }
             }
 
             if (strcmp(in_file->d_name,"pic1.bmp") == 0 || strcmp(in_file->d_name,"pic2.bmp") == 0 || strcmp(in_file->d_name,"mask2.bmp") == 0 )
             {
                 if(strcmp(in_file->d_name,"mask2.bmp") == 0){
-                    mask2 = in_file->d_name;
+                    params.mask2 = in_file->d_name;
                     countSet3++;
-                }else if(pic1 == NULL){
-                    pic1 = in_file->d_name;
+                }else if(params.pic1 == NULL){
+                    params.pic1 = in_file->d_name;
                     countSet3++;
                 } else
                 {
-                    pic2 = in_file->d_name;
-                    countSet3++;
+                   params.pic2 = in_file->d_name;
+                   countSet3++;
                 }
 
-                if (countSet3 == 3)
+                if (countSet3==true)
                 {
-                    generateMaskedImage(pic1, pic2, mask2, 800, 600, "result3.bmp");
+                    params.set3=true;
                 }
             } 
 
             if (strcmp(in_file->d_name,"photo1.bmp") == 0 || strcmp(in_file->d_name,"photo2.bmp") == 0 || strcmp(in_file->d_name,"mask4.bmp") == 0 )
             {
                 if(strcmp(in_file->d_name,"mask4.bmp") == 0){
-                    mask4 = in_file->d_name;
+                    params.mask4 = in_file->d_name;
                     countSet4++;
-                }else if(photo1 == NULL){
-                    photo1 = in_file->d_name;
+                }else if(params.photo1 == NULL){
+                    params.photo1 = in_file->d_name;
                     countSet4++;
                 } else
                 {
-                    photo2 = in_file->d_name;
+                    params.photo2 = in_file->d_name;
                     countSet4++;
                 }
 
-                if (countSet4 == 3)
+                if (countSet4==true)
                 {
-                    generateMaskedImage(photo1, photo2, mask4, 1280, 960, "result4.bmp");
+                    params.set4=true;
                 }
             }
-
             fclose(entry_file);
-
         }
     }
-
+   if (countSet1 == 3 && countSet2 == 3 || countSet3 == 3 && countSet4 == 3)
+    {
+        pthread_create(&thread, NULL, thread_function, (void *)&params);
+        pthread_join(thread,NULL);
+    }
+ 
     closedir(dir);
 
     return 0;
