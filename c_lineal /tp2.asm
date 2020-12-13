@@ -41,10 +41,10 @@ CMAIN:
      movq mm3, qword[mascara] ;
           
                
-     pand mm2,mm0; borro de la imagen 2 los canales de pixeles donde la mascara es negra
+     pand mm1,mm0; borro de la imagen 2 donde la mascara es blanca
      pxor mm0,mm3; creo la negacion de la mascara
-     pand mm1, mm0; borro de la imagen 1 los canales de pixeles donde la imagen es blanca
-     por mm1, mm2; sumamos las dos imagenes alteradas y guardo el resultado en la imagen 1
+     pand mm2, mm0; borro de la imagen 1 donde la imagen es negra
+     por mm1, mm2; sumamos las dos imagenes y guardo el resultado en la imagen 1
      
      movq qword[eax],mm1; reemplaza los bytes de la imagen 1 modificados
     
