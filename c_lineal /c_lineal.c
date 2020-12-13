@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include<time.h>
+#include<sys/time.h>
 
 extern void CMAIN(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int dimensions);
 
@@ -77,7 +77,6 @@ void *principal(void *args)
     char *imagen2 = argv[2];
     char *mask = argv[3];
 */
-printf("width %d", actual_args->width);
     char *imagen1 = actual_args->img1;
     char *imagen2 = actual_args->img2;
     char *mask = actual_args->mascara;
@@ -89,7 +88,6 @@ printf("width %d", actual_args->width);
     int colorsxPixel = 3; 
     int dimensions = width * heigth * colorsxPixel;
 
-          printf(" \n  inicio %d", width);
 
 
     // memory reservation
@@ -101,7 +99,6 @@ printf("width %d", actual_args->width);
     int offset2 = loadFile(imagen2, dimensions, img2Data);
     int offset3 = loadFile(mask, dimensions, maskData); 
 
-    printf("entrando a enmascarar ");
 
     enmascarar_c(img1Data, img2Data, maskData, width, heigth);
     //CMAIN((img1Data+offset1), (img2Data+offset2), (maskData+offset3), dimensions);   
@@ -121,8 +118,6 @@ int main()
 {
     pthread_t hilo;
     pthread_t hilo2;
-    clock_t t_ini, t_fin;
-    double secs = 0.0;
 
      parameter_struct *args = malloc(sizeof *args);
      args->img1 = "photo1.bmp";
@@ -140,27 +135,35 @@ int main()
      args2->heigth = 490;
      args2->result = "result2.bmp";
 
-printf("args: %d",args2->width);
+     parameter_struct *args3 = malloc(sizeof *args3);
+     args3->img1 = "w1.bmp";
+     args3->img2 = "w2.bmp";
+     args3->mascara = "mask5.bmp";
+     args3->width = 1758;
+     args3->heigth = 1172;
+     args3->result = "result3.bmp";
 
- t_ini = clock();
- 
-  
+
+    double sum = 0;
+   struct timeval begin, end;
+    gettimeofday(&begin, 0);
+    
 
     principal(args);
     principal(args2);
+    principal(args3);
 
 
-  t_fin = clock();
+    gettimeofday(&end, NULL);
+
+    long seconds = end.tv_sec - begin.tv_sec;
+    long microseconds = end.tv_usec - begin.tv_usec;
+    double elapsed = seconds + microseconds*1e-6;
+    
+    
+    printf("Time measured: %.3f seconds.\n", elapsed);
+
    
- double inicio = (double) t_ini;
-  double fin = (double) t_fin; 
-  printf(" \n  inicio %.4f", inicio);
-    printf(" \n  fin %.4f", fin);
-
-
-  secs += (double)(t_fin - t_ini) / CLOCKS_PER_SEC;
-  float secs1 = secs * 1000.0;
-  printf(" \n  milisegundos %.4f", secs1);
 
     return 0;
 }
