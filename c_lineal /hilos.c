@@ -25,9 +25,9 @@ typedef struct parameter_struct{
 
 
 extern void CMAIN(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int dimensions);
-double enmascarar_hilos(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
-double enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
-double enmascarar_asm(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
+long enmascarar_hilos(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
+long enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
+long enmascarar_asm(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
 
 
 int loadFile(char *fileName, int dimensions, unsigned char *buffer){
@@ -165,10 +165,10 @@ int main()
   args3->heigth = 1172;
   args3->result = "result3.bmp";
 
-double timeHilos = enmascarar_hilos(args,args2,args3);
+long timeHilos = enmascarar_hilos(args,args2,args3);
 
-double timeLineal = enmascarar_lineal_C(args,args2,args3);
-double timeAsm= enmascarar_asm(args,args2,args3);
+long timeLineal = enmascarar_lineal_C(args,args2,args3);
+long timeAsm= enmascarar_asm(args,args2,args3);
 
   free(args);
   free(args2);
@@ -177,16 +177,16 @@ double timeAsm= enmascarar_asm(args,args2,args3);
   FILE *fp;
     fp=fopen("tiempos.csv","w+");
     fprintf(fp,"C_LINEAL; C_HILOS; C_MMX");
-    fprintf(fp,"\n%.3f",timeLineal);
-    fprintf(fp,"; %.3f",timeHilos);
-    fprintf(fp,"; %.3f",timeAsm);
+    fprintf(fp,"\n%ld",timeLineal);
+    fprintf(fp,"; %ld",timeHilos);
+    fprintf(fp,"; %ld",timeAsm);
     fclose(fp);
    
 
   return 0;
 }
 
-double enmascarar_hilos(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
+long enmascarar_hilos(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
   pthread_t hilo;
   pthread_t hilo2;
   pthread_t hilo3;
@@ -216,7 +216,7 @@ double enmascarar_hilos(parameter_struct *args, parameter_struct *args2,paramete
   return total;
 }
 
-double enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
+long enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
     clock_t tiempo_inicio, tiempo_final;
 
     args->result = "result_lineal1.bmp";
@@ -236,7 +236,7 @@ double enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,param
     return total;
 }
 
-double enmascarar_asm(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
+long enmascarar_asm(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
    clock_t   tiempo_inicio, tiempo_final;
 
     args->result = "result_asm1.bmp";
