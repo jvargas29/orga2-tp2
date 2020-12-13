@@ -29,7 +29,7 @@ pthread_mutex_t lock;
 
 
 int loadFile(char *fileName, int dimensions, unsigned char *buffer){
-     pthread_mutex_lock(&lock);
+     //pthread_mutex_lock(&lock);
 
     FILE *file;
      bmpFileHeader header;    
@@ -44,7 +44,7 @@ int loadFile(char *fileName, int dimensions, unsigned char *buffer){
         fread(buffer, dimensions, 1, file);
     }
     fclose(file);
-    pthread_mutex_unlock(&lock);
+   // pthread_mutex_unlock(&lock);
 
     return header.offset;
 }
