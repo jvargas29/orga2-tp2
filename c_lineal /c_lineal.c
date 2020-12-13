@@ -88,8 +88,6 @@ void *principal(void *args)
     int colorsxPixel = 3; 
     int dimensions = width * heigth * colorsxPixel;
 
-
-
     // memory reservation
     unsigned char *maskData = malloc(dimensions);
     unsigned char *img1Data = malloc(dimensions);  
@@ -163,7 +161,12 @@ int main()
     
     printf("Time measured: %.3f seconds.\n", elapsed);
 
-   
-
+    FILE *fp;
+    fp=fopen("tiempos.csv","w+");
+    fprintf(fp,"C_LINEAL; C_HILOS; C_MMX");
+    fprintf(fp,"\n%.3f",elapsed);
+    fprintf(fp,"; %.3f",elapsed);
+    fprintf(fp,"; %.3f",elapsed);
+    fclose(fp);
     return 0;
 }
