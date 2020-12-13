@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include<pthread.h>
-#include<sys/time.h>
-#include <stdbool.h> 
+#include <time.h>
 
 
 typedef struct bmpFileHeader
@@ -24,8 +23,7 @@ typedef struct parameter_struct{
    unsigned char *result;
 } parameter_struct;
 
-pthread_mutex_t lock;
-bool usaMutex=false;
+
 extern void CMAIN(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int dimensions);
 double enmascarar_hilos(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
 double enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3);
@@ -51,16 +49,12 @@ int loadFile(char *fileName, int dimensions, unsigned char *buffer){
 
 
 void saveFile(char *fileName, int dimensions, unsigned char *buffer){
- /*  if(usaMutex){
-    pthread_mutex_lock(&lock);
-  }*/
+
   FILE *file;
   file = fopen(fileName, "w");
   fwrite(buffer, 1, dimensions, file);
   fclose(file);
-/*  if(usaMutex){
-    pthread_mutex_unlock(&lock);
-  } */
+
 }
 
 void enmascarar_c(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int width, int heigth)
@@ -102,7 +96,6 @@ void *principal(void *args)
   int offset1 = loadFile(imagen1, dimensions, img1Data);
   int offset2 = loadFile(imagen2, dimensions, img2Data);
   int offset3 = loadFile(mask, dimensions, maskData); 
-
   enmascarar_c(img1Data, img2Data, maskData, width, heigth);
 
   saveFile(result, dimensions, img1Data);
@@ -110,7 +103,6 @@ void *principal(void *args)
   free(maskData);
   free(img1Data);
   free(img2Data);
- // free(actual_args);
 }
 
 void *principal_asm(void *args)
@@ -144,7 +136,6 @@ void *principal_asm(void *args)
   free(maskData);
   free(img1Data);
   free(img2Data);
-  //free(actual_args);
 }
 
 int main()
@@ -174,8 +165,9 @@ int main()
   args3->heigth = 1172;
   args3->result = "result3.bmp";
 
-double timeLineal = enmascarar_lineal_C(args,args2,args3);
 double timeHilos = enmascarar_hilos(args,args2,args3);
+
+double timeLineal = enmascarar_lineal_C(args,args2,args3);
 double timeAsm= enmascarar_asm(args,args2,args3);
 
   free(args);
@@ -191,7 +183,6 @@ double timeAsm= enmascarar_asm(args,args2,args3);
     fclose(fp);
    
 
-
   return 0;
 }
 
@@ -199,85 +190,69 @@ double enmascarar_hilos(parameter_struct *args, parameter_struct *args2,paramete
   pthread_t hilo;
   pthread_t hilo2;
   pthread_t hilo3;
-  struct timeval begin, end;
+  clock_t tiempo_inicio, tiempo_final;
+
 
     args->result = "result_hilos1.bmp";
     args2->result = "result_hilos2.bmp";
     args3->result = "result_hilos3.bmp";
 
-  /* if (pthread_mutex_init(&lock, NULL) != 0)
-  {
-    printf("Mutex initialization failed.\n");
-    return 1;
-  }else{
-    usaMutex=true;
-  }*/
+  
+    tiempo_inicio = clock();
 
-  gettimeofday(&begin, 0);
  
-  if(pthread_create(&hilo, NULL, principal,  (void *)args));
-  if(pthread_create(&hilo2, NULL, principal,  (void *)args2));
-  if(pthread_create(&hilo3, NULL, principal,  (void *)args3));
+    pthread_create(&hilo, NULL, principal,  (void *)args);
+    pthread_create(&hilo2, NULL, principal,  (void *)args2);
+    pthread_create(&hilo3, NULL, principal,  (void *)args3);
 
-  pthread_join(hilo, NULL);
-  pthread_join(hilo2, NULL);
-  pthread_join(hilo3, NULL);
+    pthread_join(hilo, NULL);
+    pthread_join(hilo2, NULL);
+    pthread_join(hilo3, NULL);
 
-  //pthread_mutex_destroy(&lock);
-  gettimeofday(&end, NULL);
+    tiempo_final = clock();
 
-  long seconds = end.tv_sec - begin.tv_sec;
-  long microseconds = end.tv_usec - begin.tv_usec;
-  double elapsed = seconds + microseconds*1e-6;
-        
-  printf("Tiempo de ejecucion HILOS: %.3f seconds.\n", elapsed);
-  return elapsed;
+  unsigned long total = (tiempo_final - tiempo_inicio );
+    printf("Tiempo de ejecucion HILOS: %ld unidades de clock.\n", total);
+  return total;
 }
 
 double enmascarar_lineal_C(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
-   struct timeval begin, end;
-        usaMutex=false;
+    clock_t tiempo_inicio, tiempo_final;
 
     args->result = "result_lineal1.bmp";
     args2->result = "result_lineal2.bmp";
     args3->result = "result_lineal3.bmp";
 
-    gettimeofday(&begin, 0);
+    tiempo_inicio = clock();
 
     principal(args);
     principal(args2);
     principal(args3);
 
-    gettimeofday(&end, NULL);
+    tiempo_final = clock();
+    unsigned long total = (tiempo_final - tiempo_inicio );
+    printf("Tiempo de ejecucion LINEAL: %ld unidades de clock.\n", total);
 
-    long seconds = end.tv_sec - begin.tv_sec;
-    long microseconds = end.tv_usec - begin.tv_usec;
-    double elapsed = seconds + microseconds*1e-6;
-    
-    printf("Tiempo de ejecucion LINEAL: %.3f seconds.\n", elapsed);
-    return elapsed;
+    return total;
 }
 
 double enmascarar_asm(parameter_struct *args, parameter_struct *args2,parameter_struct *args3){
-   struct timeval begin, end;
-        usaMutex=false;
+   clock_t   tiempo_inicio, tiempo_final;
 
     args->result = "result_asm1.bmp";
     args2->result = "result_asm2.bmp";
     args3->result = "result_asm3.bmp";
 
-    gettimeofday(&begin, 0);
+       tiempo_inicio = clock();
+
 
     principal_asm(args);
     principal_asm(args2);
     principal_asm(args3);
 
-    gettimeofday(&end, NULL);
+    tiempo_final = clock();
+    unsigned long total = (tiempo_final - tiempo_inicio );
+    printf("Tiempo de ejecucion MMX: %ld unidades de clock.\n", total);
 
-    long seconds = end.tv_sec - begin.tv_sec;
-    long microseconds = end.tv_usec - begin.tv_usec;
-    double elapsed = seconds + microseconds*1e-6;
-    
-    printf("Tiempo de ejecucion MMX: %.3f seconds.\n", elapsed);
-    return elapsed;
+    return total;
 }
