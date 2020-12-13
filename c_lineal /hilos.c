@@ -25,7 +25,12 @@ typedef struct parameter_struct{
    unsigned char *result;
 } parameter_struct;
 
+pthread_mutex_t lock;
+
+
 int loadFile(char *fileName, int dimensions, unsigned char *buffer){
+     pthread_mutex_lock(&lock);
+
     FILE *file;
      bmpFileHeader header;    
   uint16_t type;   
@@ -39,18 +44,24 @@ int loadFile(char *fileName, int dimensions, unsigned char *buffer){
         fread(buffer, dimensions, 1, file);
     }
     fclose(file);
+    pthread_mutex_unlock(&lock);
+
     return header.offset;
 }
 
 
 void saveFile(char *fileName, int dimensions, unsigned char *buffer){
+    pthread_mutex_lock(&lock);
+
     FILE *file;
     file = fopen(fileName, "w");
     fwrite(buffer, 1, dimensions, file);
     fclose(file);
+    pthread_mutex_unlock(&lock);
+
 }
 
-void enmascarar_c(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int heigth, int width)
+void enmascarar_c(unsigned char *img1pixels, unsigned char *img2pixels, unsigned char *maskPixels, int width, int heigth)
 {
     int r,g,b;
  
@@ -59,7 +70,6 @@ void enmascarar_c(unsigned char *img1pixels, unsigned char *img2pixels, unsigned
       b = maskPixels[3 * x];
       g = maskPixels[(3 * x) + 1];
       r = maskPixels[(3 * x)+2];
-    printf("x pos %d",x);
     if(b == 0 && g== 0 && r == 0){
         img1pixels[3 * x] = img2pixels[3 * x];
         img1pixels[(3 * x)+1] = img2pixels[(3 * x)+1];
@@ -107,8 +117,8 @@ printf("width %d", actual_args->width);
 
     printf("entrando a enmascarar ");
 
-    //enmascarar_c(img1Data, img2Data, maskData, width, heigth);
-    CMAIN((img1Data+offset1), (img2Data+offset2), (maskData+offset3), dimensions);   
+    enmascarar_c(img1Data, img2Data, maskData, width, heigth);
+    //CMAIN((img1Data+offset1), (img2Data+offset2), (maskData+offset3), dimensions);   
 
 
     saveFile(result, dimensions, img1Data);
@@ -117,7 +127,6 @@ printf("width %d", actual_args->width);
     free(img1Data);
     free(img2Data);
     free(actual_args);
-
    // return 0;
 
 }
@@ -128,32 +137,38 @@ int main()
     clock_t t_ini, t_fin;
     double secs = 0.0;
 
+     if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+        printf("Mutex initialization failed.\n");
+        return 1;
+    }
+
      parameter_struct *args = malloc(sizeof *args);
-     args->img1 = "image1.bmp";
-     args->img2 = "image2.bmp";
-     args->mascara = "mask3.bmp";
-     args->width = 970;
-     args->heigth = 518;
+     args->img1 = "photo1.bmp";
+     args->img2 = "photo2.bmp";
+     args->mascara = "mask4.bmp";
+     args->width = 1280;
+     args->heigth = 960;
      args->result = "result.bmp";
 
      parameter_struct *args2 = malloc(sizeof *args2);
-     args->img1 = "img1.bmp";
-     args->img2 = "img2.bmp";
-     args->mascara = "mask.bmp";
-     args->width = 500;
-     args->heigth = 490;
-     args->result = "result2.bmp";
+     args2->img1 = "img1.bmp";
+     args2->img2 = "img2.bmp";
+     args2->mascara = "mask.bmp";
+     args2->width = 500;
+     args2->heigth = 490;
+     args2->result = "result2.bmp";
 
-printf("args: %d",args->width);
+printf("args: %d",args2->width);
 
  t_ini = clock();
  
     if(pthread_create(&hilo, NULL, principal,  (void *)args)){
         free(args);
     }
-    if(pthread_create(&hilo2, NULL, principal,  (void *)args2)){
+   if(pthread_create(&hilo2, NULL, principal,  (void *)args2)){
         free(args2);
-    }
+   }
 
     //principal("image1.bmp", "image2.bmp", "mask3.bmp", 970, 518, "result.bmp");
     //principal("img1.bmp", "img2.bmp", "mask.bmp", 500, 490, "result2.bmp");
@@ -161,6 +176,9 @@ printf("args: %d",args->width);
 
     pthread_join(hilo, NULL);
     pthread_join(hilo2, NULL);
+
+    pthread_mutex_destroy(&lock);
+
 
   t_fin = clock();
    
