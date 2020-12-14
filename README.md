@@ -18,7 +18,7 @@ Se debe descargar el projecto desde el siguiente repositorio de git: [enlace en 
 
 Para ejecutar el script se debe posicionarse sobre la carpeta del projecto y ejecutar el comando: **sudo sh script_enmascarar.sh**.
 
-![Clonamos el proyecto y lo ejecutamos](/capturas readme/captura1.png)
+![Clonamos el proyecto y lo ejecutamos](/capturas/captura1.png)
 
 Como resultado, la aplicacion indica cuanto tiempo le tomo ejecutar la misma operacion con distintas tecnicas, generando las imagenes de un conjunto de 3 imagenes enmascaradas de un total de 8 imagenes simples y 3 mascaras utilizadas en total. 
 
@@ -32,11 +32,11 @@ Aunque los tiempos pueden variar en cada ejecucion es notable que el procesamien
 
 Ejemplo de la ejecucion del programa: 
 
-![Ejemplo](/capturas readme/captura2.png)
+![Ejemplo](/capturas/captura2.png)
 
 En el siguiente cuadro se puede notar con mas facilidad la diferencia en la perfomances de las disitntas tecnicas: 
 
-![Grafico de medicion de tiempos de ejecucion](/capturas readme/captura3.png)
+![Grafico de medicion de tiempos de ejecucion](/capturas/captura3.png)
 
 Como conclusion ejecutar tareas con instrucciones SIMD tiene una performance bastante alta, frente a lo que es un procesamiento lineal o secuencial de una sola tarea o a una implementacion con paralelismo, a su vez que una implementacion con paralelismo es mas rapido que una ejecucion lineal o secuencial.
 
