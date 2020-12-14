@@ -18,7 +18,7 @@ Se debe descargar el projecto desde el siguiente repositorio de git: [enlace en 
 
 Para ejecutar el script se debe posicionarse sobre la carpeta del projecto y ejecutar el comando: **sudo sh script_enmascarar.sh**.
 
-![Clonamos el proyecto y lo ejecutamos](/capturas/captura1.jpeg)
+![Clonamos el proyecto y lo ejecutamos](/capturas/captura1.png)
 
 Como resultado, la aplicacion indica cuanto tiempo le tomo ejecutar la misma operacion con distintas tecnicas, generando las imagenes de un conjunto de 3 imagenes enmascaradas de un total de 8 imagenes simples y 3 mascaras utilizadas en total. 
 
@@ -32,7 +32,7 @@ Aunque los tiempos pueden variar en cada ejecucion es notable que el procesamien
 
 Ejemplo de la ejecucion del programa: 
 
-![Ejemplo](/capturas/captura2.png)
+![Ejemplo](/capturas/captura2.jpeg)
 
 En el siguiente cuadro se puede notar con mas facilidad la diferencia en la perfomances de las disitntas tecnicas: 
 
